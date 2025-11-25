@@ -168,7 +168,7 @@ REASONING: [2-3 sentences explaining the scores]"""
 
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4o-mini",  # Cheaper model for evaluation
+            model="gpt-4o",  # Consistent model for evaluation
             messages=[
                 {"role": "system", "content": "You are an expert educational content evaluator. Provide objective, consistent scores."},
                 {"role": "user", "content": prompt}

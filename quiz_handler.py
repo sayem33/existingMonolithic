@@ -50,7 +50,7 @@ def generate_quiz(pdf_content, difficulty):
     try:
         # Call OpenAI API
         response = openai.ChatCompletion.create(
-            model="gpt-4",
+            model="gpt-4o",
             messages=[{"role": "system", "content": prompt}]
         )
         raw_data = response['choices'][0]['message']['content']
