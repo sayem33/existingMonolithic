@@ -1,127 +1,77 @@
-# LLM-Powered Online Teaching Assistant for Requirements Engineering (RE) Course (APUOPE-RE)
+# APUOPE-RE: LLM-Powered Teaching Assistant
 
-## Latest Architecture Update (December 2025)
+This application serves as an interactive teaching assistant for Requirements Engineering (RE) courses. It utilizes **Retrieval-Augmented Generation (RAG)** to provide context-aware answers, quizzes, and assignments based specifically on uploaded course PDF materials rather than general knowledge.
 
-### Unified GPT-4o Implementation
-- **All Tasks**: Now use GPT-4o for consistent performance across:
-  - Summarization (short/detailed summaries)
-  - Conceptual Q&A (conceptual questions)
-  - Application Q&A (application-based questions)
-  - Quiz Generation (MCQ/true-false questions)
-- **LLM-as-Judge Evaluation**: GPT-4o for content quality assessment
-- **Evaluation Metrics**: LLM-as-Judge + Automated Metrics (Word-F1, Length Ratio)
+## System Overview
 
-### Benchmark Testing Framework
-- **90-test Dataset**: Comprehensive evaluation of Requirements Engineering content
-- **Task Types**: 4 categories with automated quality scoring
-- **Performance Metrics**: Latency, success rates, quality scores (0-10 scale)
+Unlike a standard monolithic LLM approach where a model relies solely on its training data, this project implements a RAG architecture. When a user uploads a course document, the system indexes the content into a vector store. Subsequent user queries (such as generating a quiz or explaining a concept) trigger a semantic search against this index.
 
-## Live Project Link
-[https://comp-se-610-620-autumn-2024-software.onrender.com/](https://comp-se-610-620-autumn-2024-software.onrender.com/)
+The application retrieves the specific text chunks relevant to the user's request and feeds them into OpenAI's models (GPT-4/GPT-4o) as context. This ensures that the generated content aligns strictly with the provided lecture materials and reduces hallucinations.
 
-## User Acceptance Testing (UAT) Process
+## Key Components
 
-### Step-1: Register as a Teacher and Login as a Teacher
+### Core RAG Engine
+The backend logic is handled primarily in `rag_engine.py`. This module manages the lifecycle of document processing:
+*   **Ingestion:** PDFs are split into chunks of approximately 500 words to ensure optimal context window usage.
+*   **Vectorization:** Each chunk is converted into embeddings using the `text-embedding-ada-002` model.
+*   **Storage:** Vectors are cached locally using pickle files with MD5-hashed filenames to prevent redundant processing.
+*   **Retrieval:** When a query is received, the engine calculates cosine similarity to find the top matching chunks before generating a response.
 
-1. **Register and Login**
-   - Register with any email and set a password.
-   - Choose 'teacher' from the role panel.
-   - Login after completing the registration.
+### Application Modules
+The user-facing functionality is organized into specific components found in the `components/` directory:
+*   **Assessment Tools:** `quizzes.py` and `assignment.py` generate scenario-based questions and coding tasks. These modules use the RAG engine to find specific topics within the PDFs to build questions around.
+*   **Learning Aids:** `conceptual_examples.py` and `lecture_summaries.py` help students review material by extracting key points and generating illustrative examples.
+*   **Student Tracking:** The dashboard and progress tracking modules monitor user interaction and quiz performance.
 
-2. **Dashboard**
-   - Navigate to the Dashboard to see an overview of the course with progress.
-   - Note: This page is structured with dummy data and is not integrated with live data as it was not required by the customer. Further development is planned.
+## Installation
 
-3. **Materials**
-   - If any material is listed, delete them for a fresh start.
-   - Add your own materials. Materials can be any PDF file on your PC.
+1.  **Clone the repository**
 
-4. **Studying Lectures**
-   - View uploaded materials in the list panel.
-   - Choose any material from the list and use the following buttons:
-     - "Generate Conceptual Example" (GPT-4o powered)
-     - "Generate Summary" (GPT-4o powered short/detailed summaries)
-     - "Find Contents" (GPT-4o powered content analysis)
-   - All generation uses GPT-4o for high-quality, consistent responses
-   - After generating the response, check the relevance of the content using the "Check Relevance" button (this button appears after generating a response).
-   - Write prompts in the text field below for further analysis on the material.
+2.  **Install dependencies**
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-5. **Quiz**
-   - No information will be displayed initially as no student has taken any quiz yet.
+3.  **Environment Setup**
+    Create a `.env` file in the root directory and add your OpenAI API key:
+    ```
+    OPENAI_API_KEY=your_key_here
+    ```
 
-6. **Assignment**
-   - No information will be displayed initially as no student has submitted any assignment yet.
+4.  **Run the application**
+    ```bash
+    streamlit run app.py
+    ```
 
-7. **Feedback**
-   - No information will be displayed initially as no student has submitted any feedback yet.
+## Configuration
 
-### Step-2: Register as a Student and Login as a Student
+You can tune the performance of the RAG retrieval in `rag_engine.py`. The `chunk_size` (default: 500 words) determines the granularity of the context, while `top_k` (default: 3-5) controls how many distinct text segments are fed to the LLM during generation.
 
-1. **Register and Login**
-   - Register with another email and set a password.
-   - Choose 'student' from the role panel.
-   - Provide any ID as the student ID.
-   - Login after completing the registration.
+The application uses SQLite (`lecture_summaries.db`) for data persistence regarding user progress and cached summaries. If you need to reset the application state, run `python clear_database.py`.
 
-2. **Dashboard**
-   - Navigate to the Dashboard to see an overview of the course with progress.
-   - Note: This page is structured with dummy data and is not integrated with live data as it was not required by the customer. Further development is planned.
+## Project Structure
 
-3. **Materials**
-   - View materials uploaded by the teacher.
-   - As a student, you can only view materials uploaded by the teacher. You cannot upload or delete any material.
-
-4. **Studying Lectures**
-   - View uploaded materials in the list panel.
-   - Choose any material from the list and use the following buttons:
-     - "Generate Conceptual Example" (GPT-4o powered)
-     - "Generate Summary" (GPT-4o powered short/detailed summaries)
-     - "Find Contents" (GPT-4o powered content analysis)
-   - All generation uses GPT-4o for high-quality, consistent responses
-   - After generating the response, check the relevance of the content using the "Check Relevance" button (this button appears after generating a response).
-   - Write prompts in the text field below for further analysis on the material.
-
-5. **Quiz**
-   - Choose any material from the dropdown list.
-   - Select a difficulty level and press "Generate Quiz" to take the quiz.
-   - Quiz generation now powered by GPT-4o for improved question quality and accuracy
-   - After answering the quiz questions, your score will be displayed.
-
-6. **Assignment**
-   - Choose any material from the dropdown list.
-   - Press "Generate Conceptual Assignment" to generate an assignment with instructions (GPT-4o powered).
-   - The generated assignment will also be available as a PDF.
-   - Download the PDF by pressing "Download Generated Assignment (PDF)".
-   - Upload your completed assignment below with your name.
-
-7. **Feedback**
-   - Submit your feedback anonymously as a student.
-
-### Step-3: Login Again as a Teacher
-
-1. **Quiz**
-   - View the quiz responses submitted when logged in as a student.
-
-2. **Assignment**
-   - View the assignments submitted when logged in as a student.
-
-3. **Feedback**
-   - View the feedback submitted when logged in as a student.
-
-## Technical Architecture
-
-### Backend Components
-- **Content Generation**: GPT-4o for all text generation tasks
-- **Quiz Generation**: GPT-4o with structured JSON output
-- **Quality Evaluation**: LLM-as-Judge (GPT-4o) + Automated Metrics
-- **Database**: SQLite for user management and content storage
-- **File Storage**: Local file system for PDF materials
-
-### Testing Framework
-- **Benchmark Dataset**: 90 comprehensive test cases
-- **Task Types**: Summarization, Q&A, Quiz Generation
-- **Evaluation Metrics**: LLM scoring (0-10), Word-F1, latency analysis
-- **Quality Assessment**: Automated evaluation of generated content
+```text
+RAG/
+├── app.py                    # Main Streamlit entry point
+├── rag_engine.py             # Embedding, retrieval, and generation logic
+├── quiz_handler.py           # Quiz logic and scoring
+├── pdf_extractor.py          # PDF text parsing
+├── relevance_check.py        # Validates if content matches the query
+├── auth.py                   # User authentication
+├── db.py                     # Database interactions
+├── file_storage.py           # File I/O utilities
+├── style.css                 # Custom UI styling
+├── components/               # UI Modules
+│   ├── assignment.py
+│   ├── conceptual_examples.py
+│   ├── dashboard.py
+│   ├── feedback.py
+│   ├── lecture_summaries.py
+│   ├── progress_tracking.py
+│   └── quizzes.py
+├── vector_store/             # Local cache for embeddings
+└── tests/                    # Unit tests
 
 ## Running Tests
 
