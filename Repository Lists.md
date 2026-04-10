@@ -11,4 +11,4 @@ Fine-Tuned: https://github.com/sayem33/FineTuned
 A model customized through fine-tuning on domain-specific data for improved performance.
 
 Hybrid: https://github.com/sayem33/Hybrid  
-A combined approach leveraging multiple techniques (e.g., RAG, fine-tuning, agents) for better results.
+A combined approach leveraging multiple techniques (RAG & fine-tuning) for better results.
